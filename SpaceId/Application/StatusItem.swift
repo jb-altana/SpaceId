@@ -15,9 +15,34 @@ class StatusItem: NSObject, NSMenuDelegate {
         item.menu = menuItems()
     }
     
+    func writeSpacenameFile(spaceInfo: SpaceInfo) {
+        let fileName = "current_workspace"
+        let DocumentDirURL = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        
+        let fileURL = DocumentDirURL.appendingPathComponent(fileName).appendingPathExtension("txt")
+        
+        // let fileHandle = FileHandle(forWritingTo: fileURL)
+        
+        let firstSpace = spaceInfo.activeSpaces[0]
+        let mirrored_object = Mirror(reflecting: firstSpace)
+        
+        var msg = ""
+        
+        for (index, attr) in mirrored_object.children.enumerated() {
+            let labelstr = attr.label ?? "null"
+            msg += "Attr \(index): \(labelstr) = \(attr.value)\n"
+        }
+        
+        do {
+            // Write to the file
+            try msg.write(to: fileURL, atomically: true, encoding: String.Encoding.utf8)
+        } catch _ as NSError {}
+    }
+    
     func updateMenuImage(spaceInfo: SpaceInfo) {
         currentSpaceInfo = spaceInfo
         item.button?.image = buttonImage.createImage(spaceInfo: spaceInfo)
+        writeSpacenameFile(spaceInfo: spaceInfo)
     }
     
     private func menuItems() -> NSMenu {
